@@ -19,12 +19,13 @@ class AddTemplatePage extends StatefulWidget {
 }
 
 class _AddTemplatePageState extends State<AddTemplatePage> {
+  static const double svgContainerBorderRadius = 10;
+
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   PlatformFile? _svgPath;
   Uint8List? _svgBytes;
   PlatformFile? _ymlPath;
   Uint8List? _ymlBytes;
-  ImageProvider<Object>? _svgImage;
   String? nameValid;
 
   final TextEditingController _ymlPathFieldController = TextEditingController();
@@ -75,25 +76,28 @@ class _AddTemplatePageState extends State<AddTemplatePage> {
                   height: 20,
                 ),
                 Container(
-                    height: 300,
-                    width: 300,
-                    decoration: BoxDecoration(
-                        color: Colors.transparent,
-                        border: Border.all(
-                          color: hasSvgImage()
-                              ? Theme.of(context).colorScheme.secondary
-                              : Theme.of(context).colorScheme.errorContainer,
-                          width: 3,
+                  height: 300,
+                  width: 300,
+                  decoration: BoxDecoration(
+                    color: Colors.transparent,
+                    border: Border.all(
+                      color: hasSvg()
+                          ? Theme.of(context).colorScheme.secondary
+                          : Theme.of(context).colorScheme.errorContainer,
+                      width: 3,
+                    ),
+                    borderRadius:
+                        BorderRadius.circular(svgContainerBorderRadius),
+                  ),
+                  alignment: Alignment.bottomLeft,
+                  child: !hasSvg()
+                      ? const Center(child: Text("Keine Vorlage gewählt"))
+                      : ClipRRect(
+                          borderRadius:
+                              BorderRadius.circular(svgContainerBorderRadius),
+                          child: SvgPicture.memory(_svgBytes!),
                         ),
-                        borderRadius: BorderRadius.circular(10),
-                        image: hasSvgImage()
-                            ? DecorationImage(
-                                image: _svgImage!, fit: BoxFit.contain)
-                            : null),
-                    alignment: Alignment.bottomLeft,
-                    child: !hasSvgImage()
-                        ? const Center(child: Text("Keine Vorlage gewählt"))
-                        : null),
+                ),
                 const SizedBox(
                   height: 10,
                 ),
@@ -178,8 +182,8 @@ class _AddTemplatePageState extends State<AddTemplatePage> {
     );
   }
 
-  bool hasSvgImage() {
-    if (_svgImage != null) {
+  bool hasSvg() {
+    if (_svgBytes != null) {
       return true;
     }
     return false;
@@ -196,16 +200,7 @@ class _AddTemplatePageState extends State<AddTemplatePage> {
       _svgPathFieldController.text = _svgPath!.name;
       XFile svgFile = _svgPath!.xFile;
       var svgBytes = await svgFile.readAsBytes();
-
-      PictureInfo svgPictureInfo =
-          (await vg.loadPicture(SvgBytesLoader(svgBytes), null));
-      Uint8List imageBytes = Uint8List.view((await (await svgPictureInfo.picture
-                  .toImage(svgPictureInfo.size.width.toInt(),
-                      svgPictureInfo.size.height.toInt()))
-              .toByteData(format: ui.ImageByteFormat.png))!
-          .buffer);
       setState(() {
-        _svgImage = MemoryImage(imageBytes);
         _svgBytes = svgBytes;
       });
     }
