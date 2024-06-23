@@ -144,12 +144,13 @@ class _AddTemplatePageState extends State<AddTemplatePage> {
                   onPressed: () async {
                     final form = _formKey.currentState;
                     if (form != null && form.validate()) {
-                      (await File(await globals.generateTemplateFilePath(
-                                  "${_nameFieldController.value.text}.svg"))
+                      var name = _nameFieldController.value.text;
+                      (await File(await globals
+                                  .generateTemplateFilePath("$name.svg"))
                               .create(recursive: true))
                           .writeAsBytes(_svgBytes!);
-                      (await File(await globals.generateTemplateFilePath(
-                                  "${_nameFieldController.value.text}.yaml"))
+                      (await File(await globals
+                                  .generateTemplateFilePath("$name.yaml"))
                               .create(recursive: true))
                           .writeAsBytes(_ymlBytes!);
                       if (!context.mounted) return;
@@ -157,11 +158,11 @@ class _AddTemplatePageState extends State<AddTemplatePage> {
                       Navigator.push(context,
                           MaterialPageRoute(builder: (context) => HomePage()));
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text("Vorlage erstellt"),
+                        SnackBar(
+                          content: Text("$name erstellt"),
                           showCloseIcon: true,
-                          behavior: SnackBarBehavior.floating,
-                          duration: Duration(seconds: 5),
+                          behavior: SnackBarBehavior.fixed,
+                          duration: const Duration(seconds: 2),
                         ),
                       );
                     }
