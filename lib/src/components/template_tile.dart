@@ -1,8 +1,11 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class TemplateTile extends StatelessWidget {
   final String name;
-  const TemplateTile({super.key, required this.name});
+  final String svgPath;
+  const TemplateTile({super.key, required this.name, required this.svgPath});
 
   @override
   Widget build(BuildContext context) {
@@ -11,13 +14,17 @@ class TemplateTile extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 10.0),
           child: Container(
-            decoration: BoxDecoration(
-                color: Colors.grey,
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.secondaryContainer,
                 borderRadius: BorderRadius.circular(10),
-                boxShadow: kElevationToShadow[3]),
-            height: 100,
-            width: 100,
-          ),
+                boxShadow: kElevationToShadow[3],
+              ),
+              height: 100,
+              width: 100,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(10),
+                child: SvgPicture.file(File(svgPath)),
+              )),
         ),
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 5),
