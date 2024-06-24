@@ -89,7 +89,11 @@ class _HomePageState extends State<HomePage> {
               context,
               MaterialPageRoute(
                 builder: (context) => const AddTemplatePage(),
-              ));
+              )).then(
+            (value) {
+              setState(() {});
+            },
+          );
         },
         child: const Icon(Icons.add),
       ),
