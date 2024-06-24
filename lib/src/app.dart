@@ -14,6 +14,8 @@ class MyApp extends StatelessWidget {
     // The ListenableBuilder Widget listens to the SettingsController for changes.
     // Whenever the user updates their settings, the MaterialApp is rebuilt.
 
+    Color onPrimaryLight = ThemeData.light().colorScheme.onPrimary;
+    Color onPrimaryDark = ThemeData.dark().colorScheme.onPrimary;
     return MaterialApp(
       // Providing a restorationScopeId allows the Navigator built by the
       // MaterialApp to restore the navigation stack when a user leaves and
@@ -31,8 +33,30 @@ class MyApp extends StatelessWidget {
       // Define a light and dark color theme. Then, read the user's
       // preferred ThemeMode (light, dark, or system default) from the
       // SettingsController to display the correct theme.
-      theme: ThemeData(),
-      darkTheme: ThemeData.dark(),
+      theme: ThemeData(
+        appBarTheme: AppBarTheme(
+          backgroundColor: ThemeData.light().colorScheme.inversePrimary,
+          titleTextStyle: TextStyle(
+              color: Color.fromARGB(
+                  onPrimaryLight.alpha,
+                  255 - onPrimaryLight.red,
+                  255 - onPrimaryLight.green,
+                  255 - onPrimaryLight.blue),
+              fontSize: 20),
+        ),
+      ),
+      darkTheme: ThemeData.dark().copyWith(
+        appBarTheme: AppBarTheme(
+          backgroundColor: ThemeData.dark().colorScheme.inversePrimary,
+          titleTextStyle: TextStyle(
+              color: Color.fromARGB(
+                  onPrimaryDark.alpha,
+                  255 - onPrimaryDark.red,
+                  255 - onPrimaryDark.green,
+                  255 - onPrimaryDark.blue),
+              fontSize: 20),
+        ),
+      ),
       themeMode: ThemeMode.system,
 
       home: HomePage(),
