@@ -34,7 +34,7 @@ class _AddTemplatePageState extends State<AddTemplatePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Add Template"),
+        title: const Text("Vorlage hinzufügen"),
       ),
       body: SingleChildScrollView(
         child: Form(
