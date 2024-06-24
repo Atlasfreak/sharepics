@@ -1,13 +1,11 @@
 import 'dart:io';
 import 'dart:typed_data';
-import 'dart:ui' as ui;
 import 'package:cross_file/cross_file.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:sharepics/src/globals.dart' as globals;
-import 'package:sharepics/src/pages/home_page.dart';
 
 class AddTemplatePage extends StatefulWidget {
   const AddTemplatePage({super.key});
@@ -158,9 +156,7 @@ class _AddTemplatePageState extends State<AddTemplatePage> {
                               .create(recursive: true))
                           .writeAsBytes(_ymlBytes!);
                       if (!context.mounted) return;
-                      Navigator.pop(context);
-                      Navigator.push(context,
-                          MaterialPageRoute(builder: (context) => HomePage()));
+                      Navigator.pop(context, true);
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           content: Text("$name erstellt"),
@@ -173,7 +169,7 @@ class _AddTemplatePageState extends State<AddTemplatePage> {
                   },
                   label: const Text("Speichern"),
                   icon: const Icon(Icons.save),
-                )
+                ),
               ],
             ),
           ),
