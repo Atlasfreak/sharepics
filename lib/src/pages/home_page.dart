@@ -15,8 +15,6 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  List<File> _files = [];
-
   Future<List<File>> _getFiles() async {
     return Directory(await globals.generateTemplatePath())
         .list()
@@ -28,14 +26,6 @@ class _HomePageState extends State<HomePage> {
 
   @override
   void initState() {
-    _getFiles().then(
-      (value) {
-        setState(() {
-          _files = value.toList();
-        });
-      },
-    );
-    print(_files);
     super.initState();
   }
 
@@ -49,30 +39,50 @@ class _HomePageState extends State<HomePage> {
         ),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
       ),
-      body: _files.isNotEmpty
-          ? GridView.builder(
-              restorationId: "homePage",
-              gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                  maxCrossAxisExtent: 150, mainAxisExtent: 150),
-              itemCount: _files.length,
-              itemBuilder: (context, index) {
-                File file = _files[index];
-                String name = globals.fileNameRegex
-                    .allMatches(file.path)
-                    .toList()[0]
-                    .group(1)
-                    .toString();
-                return TemplateTile(
-                  name: name,
-                  svgPath: file.path,
-                );
-              },
-            )
-          : const Center(
-              child: Text(
+      body: FutureBuilder(
+        future: _getFiles(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(
+              child: CircularProgressIndicator(),
+            );
+          }
+          if (snapshot.hasError) {
+            return Center(
+              child: Text("Fehler beim Laden der Vorlagen",
+                  style: TextStyle(
+                      fontSize: 20,
+                      color: Theme.of(context).colorScheme.error)),
+            );
+          }
+          if (!snapshot.hasData) {
+            return const Center(
+                child: Text(
               "Keine Vorlagen gefunden",
               style: TextStyle(fontSize: 20),
-            )),
+            ));
+          }
+          List<File> files = snapshot.data!;
+          return GridView.builder(
+            restorationId: "homePage",
+            gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                maxCrossAxisExtent: 150, mainAxisExtent: 150),
+            itemCount: files.length,
+            itemBuilder: (context, index) {
+              File file = files[index];
+              String name = globals.fileNameRegex
+                  .allMatches(file.path)
+                  .toList()[0]
+                  .group(1)
+                  .toString();
+              return TemplateTile(
+                name: name,
+                svgPath: file.path,
+              );
+            },
+          );
+        },
+      ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           Navigator.push(
