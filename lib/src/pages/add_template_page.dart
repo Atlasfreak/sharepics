@@ -5,6 +5,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:sharepics/src/components/svg_container.dart';
 import 'package:sharepics/src/globals.dart' as globals;
 
 class AddTemplatePage extends StatefulWidget {
@@ -71,21 +72,10 @@ class _AddTemplatePageState extends State<AddTemplatePage> {
                 const SizedBox(
                   height: 20,
                 ),
-                Container(
-                  height: 300,
-                  width: 300,
-                  decoration: BoxDecoration(
-                    color: Colors.transparent,
-                    border: Border.all(
-                      color: hasSvg()
-                          ? Theme.of(context).colorScheme.secondary
-                          : Theme.of(context).colorScheme.errorContainer,
-                      width: 3,
-                    ),
-                    borderRadius:
-                        BorderRadius.circular(globals.containerBorderRadius),
-                  ),
-                  alignment: Alignment.bottomLeft,
+                SvgContainer(
+                  borderColor: hasSvg()
+                      ? Theme.of(context).colorScheme.secondary
+                      : Theme.of(context).colorScheme.error,
                   child: !hasSvg()
                       ? const Center(child: Text("Keine Vorlage gewählt"))
                       : ClipRRect(
@@ -105,7 +95,7 @@ class _AddTemplatePageState extends State<AddTemplatePage> {
                     labelText: ".svg Vorlage",
                   ),
                   validator: (value) {
-                    if (value == null || value.isEmpty || _svgBytes == null) {
+                    if (value == null || value.isEmpty || !hasSvg()) {
                       return "keine Vorlage gewählt";
                     }
                     return null;
@@ -177,7 +167,7 @@ class _AddTemplatePageState extends State<AddTemplatePage> {
   }
 
   bool hasSvg() {
-    if (_svgBytes != null) {
+    if (_svgBytes != null && _svgBytes!.isNotEmpty) {
       return true;
     }
     return false;
