@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:sharepics/src/components/template_tile.dart';
 import 'package:sharepics/src/pages/add_template_page.dart';
 import 'package:sharepics/src/globals.dart' as globals;
+import 'package:sharepics/src/pages/settings_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -16,7 +17,8 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   Future<List<File>> _getFiles() async {
-    return Directory(await globals.generateTemplatePath())
+    return (await Directory(await globals.generateTemplatePath())
+            .create(recursive: true))
         .list()
         .where((event) => event.path.endsWith(".svg"))
         .where((event) => event is File)
@@ -31,6 +33,16 @@ class _HomePageState extends State<HomePage> {
         title: const Text(
           "Titel",
         ),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.settings),
+            onPressed: () {
+              Navigator.push(context, MaterialPageRoute(builder: (context) {
+                return const SettingsPage();
+              }));
+            },
+          ),
+        ],
       ),
       body: FutureBuilder(
         future: _getFiles(),
@@ -48,7 +60,7 @@ class _HomePageState extends State<HomePage> {
                       color: Theme.of(context).colorScheme.error)),
             );
           }
-          if (!snapshot.hasData) {
+          if (!snapshot.hasData || snapshot.data!.isEmpty) {
             return const Center(
                 child: Text(
               "Keine Vorlagen gefunden",
@@ -88,9 +100,7 @@ class _HomePageState extends State<HomePage> {
               MaterialPageRoute(
                 builder: (context) => const AddTemplatePage(),
               )).then(
-            (value) {
-              setState(() {});
-            },
+            (value) => setState(() {}),
           );
         },
         child: const Icon(Icons.add),

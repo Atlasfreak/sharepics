@@ -1,5 +1,10 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:sharepics/src/pages/home_page.dart';
+import 'package:sharepics/src/globals.dart' as globals;
 
 /// The Widget that configures your application.
 class MyApp extends StatelessWidget {
@@ -13,6 +18,29 @@ class MyApp extends StatelessWidget {
     //
     // The ListenableBuilder Widget listens to the SettingsController for changes.
     // Whenever the user updates their settings, the MaterialApp is rebuilt.
+
+    globals.listFonts().then(
+      (value) async {
+        var fontsDirPath =
+            "${(await getApplicationDocumentsDirectory()).path}/${globals.fontsDir}";
+        await Directory(fontsDirPath).create(recursive: true);
+        for (var font in value) {
+          var fontDir = Directory("$fontsDirPath/$font");
+          if (!await fontDir.exists()) {
+            return;
+          }
+          var fontFiles = await fontDir.list().toList();
+          var fontLoader = FontLoader(font);
+          for (var fontFile in fontFiles) {
+            if (fontFile is File) {
+              fontLoader.addFont(
+                  Future(() => fontFile.readAsBytesSync().buffer.asByteData()));
+            }
+          }
+          await fontLoader.load();
+        }
+      },
+    );
 
     Color onPrimaryLight = ThemeData.light().colorScheme.onPrimary;
     Color onPrimaryDark = ThemeData.dark().colorScheme.onPrimary;
