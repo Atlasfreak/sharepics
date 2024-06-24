@@ -6,7 +6,7 @@ import 'package:sharepics/src/pages/add_template_page.dart';
 import 'package:sharepics/src/globals.dart' as globals;
 
 class HomePage extends StatefulWidget {
-  HomePage({super.key});
+  const HomePage({super.key});
 
   static const routeName = "/";
 
@@ -25,19 +25,12 @@ class _HomePageState extends State<HomePage> {
   }
 
   @override
-  void initState() {
-    super.initState();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(
+        title: const Text(
           "Titel",
-          style: TextStyle(color: Theme.of(context).colorScheme.onPrimaryFixed),
         ),
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
       ),
       body: FutureBuilder(
         future: _getFiles(),
@@ -75,9 +68,13 @@ class _HomePageState extends State<HomePage> {
                   .toList()[0]
                   .group(1)
                   .toString();
-              return TemplateTile(
-                name: name,
-                svgPath: file.path,
+              return InkWell(
+                onTap: () {},
+                borderRadius: BorderRadius.circular(10),
+                child: TemplateTile(
+                  name: name,
+                  svgPath: file.path,
+                ),
               );
             },
           );
