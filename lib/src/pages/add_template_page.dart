@@ -17,8 +17,6 @@ class AddTemplatePage extends StatefulWidget {
 }
 
 class _AddTemplatePageState extends State<AddTemplatePage> {
-  static const double svgContainerBorderRadius = 10;
-
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   PlatformFile? _svgPath;
   Uint8List? _svgBytes;
@@ -85,14 +83,14 @@ class _AddTemplatePageState extends State<AddTemplatePage> {
                       width: 3,
                     ),
                     borderRadius:
-                        BorderRadius.circular(svgContainerBorderRadius),
+                        BorderRadius.circular(globals.containerBorderRadius),
                   ),
                   alignment: Alignment.bottomLeft,
                   child: !hasSvg()
                       ? const Center(child: Text("Keine Vorlage gewählt"))
                       : ClipRRect(
-                          borderRadius:
-                              BorderRadius.circular(svgContainerBorderRadius),
+                          borderRadius: BorderRadius.circular(
+                              globals.containerBorderRadius),
                           child: SvgPicture.memory(_svgBytes!),
                         ),
                 ),

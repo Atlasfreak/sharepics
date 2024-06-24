@@ -70,7 +70,8 @@ class _HomePageState extends State<HomePage> {
                   .toString();
               return InkWell(
                 onTap: () {},
-                borderRadius: BorderRadius.circular(10),
+                borderRadius:
+                    BorderRadius.circular(globals.containerBorderRadius),
                 child: TemplateTile(
                   name: name,
                   svgPath: file.path,
