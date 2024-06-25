@@ -19,6 +19,25 @@ class MyApp extends StatelessWidget {
     // The ListenableBuilder Widget listens to the SettingsController for changes.
     // Whenever the user updates their settings, the MaterialApp is rebuilt.
 
+    getTemporaryDirectory().then(
+      (value) async {
+        final files = value
+            .listSync(); // List all files and directories in the cache directory.
+        for (var file in files) {
+          try {
+            if (file is File) {
+              await file.delete(); // Delete if it's a file.
+            } else if (file is Directory) {
+              await file.delete(
+                  recursive: true); // Recursively delete if it's a directory.
+            }
+          } catch (e) {
+            print("Error deleting cache file: $e");
+          }
+        }
+      },
+    );
+
     globals.listFonts().then(
       (value) async {
         var fontsDirPath =
@@ -87,7 +106,7 @@ class MyApp extends StatelessWidget {
       ),
       themeMode: ThemeMode.system,
 
-      home: HomePage(),
+      home: const HomePage(),
     );
   }
 }
