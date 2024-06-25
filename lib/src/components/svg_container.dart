@@ -14,8 +14,8 @@ class SvgContainer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 300,
-      width: 300,
+      height: 400,
+      width: 400,
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.secondaryContainer,
         border: Border.all(
