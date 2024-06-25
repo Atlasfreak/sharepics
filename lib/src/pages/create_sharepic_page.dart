@@ -3,8 +3,10 @@ import 'dart:typed_data';
 import 'dart:ui';
 
 import 'package:cross_file/cross_file.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:sharepics/src/components/svg_container.dart';
@@ -60,6 +62,15 @@ class _CreateSharepicPageState extends State<CreateSharepicPage> {
       _svgString = _svgString!.replaceAll("{{$key}}", value);
     });
     setState(() {});
+  }
+
+  Future<ByteData?> _createImage(BuildContext context) async {
+    return await (await (await vg.loadPicture(
+                SvgStringLoader(_svgString!), context))
+            .picture
+            .toImage(_yamlData!["dimensions"]["width"],
+                _yamlData!["dimensions"]["height"]))
+        .toByteData(format: ImageByteFormat.png);
   }
 
   @override
@@ -167,7 +178,30 @@ class _CreateSharepicPageState extends State<CreateSharepicPage> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     ElevatedButton.icon(
-                      onPressed: () {},
+                      onPressed: () async {
+                        ByteData? imageBytes = await _createImage(context);
+                        if (imageBytes == null) return;
+                        String? result = await FilePicker.platform.saveFile(
+                          fileName: "${widget.name}.png",
+                          type: FileType.image,
+                          allowedExtensions: ["png"],
+                          bytes: imageBytes.buffer.asUint8List(),
+                        );
+                        if (result == null) return;
+                        if (Platform.isWindows ||
+                            Platform.isLinux ||
+                            Platform.isMacOS) {
+                          await XFile.fromData(imageBytes.buffer.asUint8List())
+                              .saveTo(result);
+                        }
+                        if (!context.mounted) return;
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text("Bild gespeichert unter: $result"),
+                            showCloseIcon: true,
+                          ),
+                        );
+                      },
                       label: const Text("Sharepic erstellen"),
                       icon: const Icon(Icons.save_alt),
                     ),
@@ -177,13 +211,7 @@ class _CreateSharepicPageState extends State<CreateSharepicPage> {
                     ElevatedButton.icon(
                       onPressed: () async {
                         if (_svgString == null || _yamlData == null) return;
-                        ByteData? imageBytes =
-                            await (await (await vg.loadPicture(
-                                        SvgStringLoader(_svgString!), context))
-                                    .picture
-                                    .toImage(_yamlData!["dimensions"]["width"],
-                                        _yamlData!["dimensions"]["height"]))
-                                .toByteData(format: ImageByteFormat.png);
+                        ByteData? imageBytes = await _createImage(context);
                         if (imageBytes == null) return;
                         XFile imageFile = XFile.fromData(
                             imageBytes.buffer.asUint8List(),
