@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:sharepics/src/components/template_tile.dart';
 import 'package:sharepics/src/pages/add_template_page.dart';
 import 'package:sharepics/src/globals.dart' as globals;
+import 'package:sharepics/src/pages/create_sharepic_page.dart';
 import 'package:sharepics/src/pages/settings_page.dart';
 
 class HomePage extends StatefulWidget {
@@ -35,7 +36,7 @@ class _HomePageState extends State<HomePage> {
         ),
         actions: [
           IconButton(
-            icon: Icon(Icons.settings),
+            icon: const Icon(Icons.settings),
             onPressed: () {
               Navigator.push(context, MaterialPageRoute(builder: (context) {
                 return const SettingsPage();
@@ -81,7 +82,14 @@ class _HomePageState extends State<HomePage> {
                   .group(1)
                   .toString();
               return InkWell(
-                onTap: () {},
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => CreateSharepicPage(name: name),
+                    ),
+                  );
+                },
                 borderRadius:
                     BorderRadius.circular(globals.containerBorderRadius),
                 child: TemplateTile(
@@ -96,12 +104,11 @@ class _HomePageState extends State<HomePage> {
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const AddTemplatePage(),
-              )).then(
-            (value) => setState(() {}),
-          );
+            context,
+            MaterialPageRoute(
+              builder: (context) => AddTemplatePage(),
+            ),
+          ).then((value) => setState(() {}));
         },
         child: const Icon(Icons.add),
       ),
