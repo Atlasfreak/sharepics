@@ -5,11 +5,13 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:path/path.dart';
 import 'package:sharepics/src/components/svg_container.dart';
 import 'package:sharepics/src/globals.dart' as globals;
 
 class AddTemplatePage extends StatefulWidget {
-  const AddTemplatePage({super.key});
+  String? name;
+  AddTemplatePage({super.key, this.name});
 
   static const routeName = "/add_template";
 
@@ -19,15 +21,37 @@ class AddTemplatePage extends StatefulWidget {
 
 class _AddTemplatePageState extends State<AddTemplatePage> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  PlatformFile? _svgPath;
   Uint8List? _svgBytes;
-  PlatformFile? _ymlPath;
   Uint8List? _ymlBytes;
   String? nameValid;
 
   final TextEditingController _ymlPathFieldController = TextEditingController();
   final TextEditingController _nameFieldController = TextEditingController();
   final TextEditingController _svgPathFieldController = TextEditingController();
+
+  void _loadFilesIfNameIsSet() async {
+    if (widget.name == null) return;
+    File svgFile =
+        File(await globals.generateTemplateFilePath("${widget.name}.svg"));
+    File yamlFile =
+        File(await globals.generateTemplateFilePath("${widget.name}.yaml"));
+    var yamlData = await yamlFile.readAsBytes();
+    var svgData = await svgFile.readAsBytes();
+
+    setState(() {
+      _svgPathFieldController.text = basename(svgFile.path);
+      _ymlPathFieldController.text = basename(yamlFile.path);
+      _nameFieldController.text = widget.name!;
+      _svgBytes = svgData;
+      _ymlBytes = yamlData;
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _loadFilesIfNameIsSet();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -155,7 +179,9 @@ class _AddTemplatePageState extends State<AddTemplatePage> {
                       );
                     }
                   },
-                  label: const Text("Speichern"),
+                  label: const Text(
+                    "Speichern",
+                  ),
                   icon: const Icon(Icons.save),
                 ),
               ],
@@ -178,11 +204,11 @@ class _AddTemplatePageState extends State<AddTemplatePage> {
       type: FileType.custom,
       allowedExtensions: ["svg"],
     );
-    _svgPath = result?.files.first;
+    PlatformFile? svgPath = result?.files.first;
 
-    if (_svgPath != null && _svgPath!.path != null) {
-      _svgPathFieldController.text = _svgPath!.name;
-      XFile svgFile = _svgPath!.xFile;
+    if (svgPath != null && svgPath.path != null) {
+      _svgPathFieldController.text = svgPath.name;
+      XFile svgFile = svgPath.xFile;
       var svgBytes = await svgFile.readAsBytes();
       setState(() {
         _svgBytes = svgBytes;
@@ -194,14 +220,14 @@ class _AddTemplatePageState extends State<AddTemplatePage> {
     FilePickerResult? result = await FilePicker.platform.pickFiles(
       type: FileType.any,
     );
-    _ymlPath = result?.files.first;
+    PlatformFile? ymlPath = result?.files.first;
     Uint8List? ymlBytes;
-    if (_ymlPath?.path != null) {
-      ymlBytes = await _ymlPath!.xFile.readAsBytes();
+    if (ymlPath?.path != null) {
+      ymlBytes = await ymlPath!.xFile.readAsBytes();
     }
     setState(() {
-      if (_ymlPath?.path != null && ymlBytes != null) {
-        _ymlPathFieldController.text = _ymlPath!.name;
+      if (ymlPath?.path != null && ymlBytes != null) {
+        _ymlPathFieldController.text = ymlPath!.name;
         _ymlBytes = ymlBytes;
       }
     });
