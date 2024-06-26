@@ -31,7 +31,14 @@ class TemplateTile extends StatelessWidget {
         ),
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 5),
-          child: Center(child: Text(name)),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 10.0),
+            child: Center(
+                child: Text(
+              name,
+              overflow: TextOverflow.ellipsis,
+            )),
+          ),
         ),
       ],
     );
