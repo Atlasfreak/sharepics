@@ -1,18 +1,19 @@
+import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 import 'dart:ui';
 
-import 'package:cross_file/cross_file.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:path/path.dart';
+import 'package:image_cropper/image_cropper.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:sharepics/src/components/svg_container.dart';
 import 'package:sharepics/src/globals.dart' as globals;
 import 'package:sharepics/src/pages/add_template_page.dart';
 import 'package:yaml/yaml.dart';
+import 'package:image/image.dart' as img;
 
 class CreateSharepicPage extends StatefulWidget {
   String name;
@@ -23,15 +24,15 @@ class CreateSharepicPage extends StatefulWidget {
 }
 
 class _CreateSharepicPageState extends State<CreateSharepicPage> {
-  File? _svgFile;
   String? _svgString;
   String? _originalSvgString;
-  File? _yamlFile;
   dynamic _yamlData;
   final Map<String, String> _insertedTexts = {};
-  final Map<String, File> _selectedImages = {};
+  final Map<String, XFile> _selectedImages = {};
+  final Map<String, TextEditingController> _controllers = {};
+  bool _loading = false;
 
-  void _loadFiles() async {
+  Future _loadFiles() async {
     File svgFile =
         File(await globals.generateTemplateFilePath("${widget.name}.svg"));
     File yamlFile =
@@ -40,8 +41,6 @@ class _CreateSharepicPageState extends State<CreateSharepicPage> {
     String svgString = await svgFile.readAsString();
 
     setState(() {
-      _svgFile = svgFile;
-      _yamlFile = yamlFile;
       _yamlData = yamlData;
       _svgString = svgString;
       _originalSvgString = svgString;
@@ -51,17 +50,68 @@ class _CreateSharepicPageState extends State<CreateSharepicPage> {
   @override
   void initState() {
     super.initState();
-    _loadFiles();
+    _loadFiles().then((value) {
+      for (var key in _yamlData?["images"].keys ?? []) {
+        _controllers[key] = TextEditingController();
+      }
+    });
   }
 
-  void _insertText(String key, String value) {
+  void _updateSvgString() async {
     if (_originalSvgString == null) return;
-    _insertedTexts[key] = value;
     _svgString = _originalSvgString;
     _insertedTexts.forEach((key, value) {
       _svgString = _svgString!.replaceAll("{{$key}}", value);
     });
+    for (var key in _selectedImages.keys) {
+      XFile? value = _selectedImages[key];
+      if (value == null) continue;
+      _svgString = _svgString!.replaceAll("{{$key}}",
+          "data:image/png;base64,${base64.encode(await value.readAsBytes())}");
+    }
+    setState(() {
+      _loading = false;
+    });
+  }
+
+  void _insertText(String key, String value) {
+    if (_originalSvgString == null) return;
+    setState(() {
+      _loading = true;
+    });
+    _insertedTexts[key] = value;
+    _updateSvgString();
     setState(() {});
+  }
+
+  void _selectImage(String key) async {
+    FilePickerResult? result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowMultiple: false,
+      allowedExtensions: ["png", "jpg", "jpeg"],
+    );
+    if (result == null) return;
+    setState(() {
+      _loading = true;
+    });
+    XFile file = result.files.first.xFile;
+    CroppedFile? croppedImage = await ImageCropper().cropImage(
+      sourcePath: file.path,
+      maxHeight: _yamlData["images"][key]["height"],
+      maxWidth: _yamlData["images"][key]["width"],
+      aspectRatio: CropAspectRatio(
+        ratioX: (_yamlData["images"][key]["width"] as int).toDouble(),
+        ratioY: (_yamlData["images"][key]["height"] as int).toDouble(),
+      ),
+    );
+    if (croppedImage == null) return;
+
+    _selectedImages[key] = XFile.fromData(await croppedImage.readAsBytes());
+
+    setState(() {
+      _controllers[key]!.text = result.files.first.name;
+    });
+    _updateSvgString();
   }
 
   Future<ByteData?> _createImage(BuildContext context) async {
@@ -71,6 +121,84 @@ class _CreateSharepicPageState extends State<CreateSharepicPage> {
             .toImage(_yamlData!["dimensions"]["width"],
                 _yamlData!["dimensions"]["height"]))
         .toByteData(format: ImageByteFormat.png);
+  }
+
+  List<Widget>? _createTextFields() {
+    if ((_yamlData?["inputs"]?.keys.length ?? 0) <= 0) return null;
+    return [
+      const SizedBox(
+        height: 20,
+      ),
+      const Center(
+        child: Text(
+          "Text eingeben:",
+          style: TextStyle(fontSize: 20),
+        ),
+      ),
+      const SizedBox(
+        height: 10,
+      ),
+      ListView.builder(
+        shrinkWrap: true,
+        itemCount: _yamlData?["inputs"].keys.length ?? 0,
+        itemBuilder: (context, index) {
+          var key = _yamlData["inputs"].keys.toList()[index];
+          var input = _yamlData["inputs"][key];
+          return TextFormField(
+            decoration: InputDecoration(
+              labelText: input["name"] ?? key,
+              border: const UnderlineInputBorder(),
+            ),
+            autovalidateMode: AutovalidateMode.onUserInteraction,
+            maxLength: input["max_length"],
+            onChanged: (value) {
+              _insertText(
+                key,
+                value,
+              );
+            },
+          );
+        },
+        physics: const NeverScrollableScrollPhysics(),
+      ),
+    ];
+  }
+
+  List<Widget>? _createImageFields() {
+    if ((_yamlData?["images"]?.keys.length ?? 0) <= 0) return null;
+    return [
+      const SizedBox(
+        height: 20,
+      ),
+      const Center(
+        child: Text(
+          "Bilder auswählen:",
+          style: TextStyle(fontSize: 20),
+        ),
+      ),
+      const SizedBox(
+        height: 10,
+      ),
+      ListView.builder(
+        shrinkWrap: true,
+        itemBuilder: (context, index) {
+          var key = _yamlData["images"].keys.toList()[index];
+          return TextFormField(
+            controller: _controllers[key],
+            readOnly: true,
+            decoration: InputDecoration(
+              labelText: _yamlData["images"][key]["name"],
+              border: const UnderlineInputBorder(),
+            ),
+            onTap: () {
+              _selectImage(key);
+            },
+          );
+        },
+        itemCount: _yamlData?["images"].keys.length ?? 0,
+        physics: const NeverScrollableScrollPhysics(),
+      ),
+    ];
   }
 
   @override
@@ -101,7 +229,7 @@ class _CreateSharepicPageState extends State<CreateSharepicPage> {
               children: [
                 SvgContainer(
                   borderColor: Theme.of(context).colorScheme.secondaryContainer,
-                  child: _svgString == null
+                  child: _svgString == null || _loading
                       ? const Center(child: CircularProgressIndicator())
                       : ClipRRect(
                           borderRadius: BorderRadius.circular(
@@ -109,68 +237,8 @@ class _CreateSharepicPageState extends State<CreateSharepicPage> {
                           child: SvgPicture.string(_svgString!),
                         ),
                 ),
-                const SizedBox(
-                  height: 20,
-                ),
-                const Center(
-                  child: Text(
-                    "Text eingeben:",
-                    style: TextStyle(fontSize: 20),
-                  ),
-                ),
-                const SizedBox(
-                  height: 10,
-                ),
-                ListView.builder(
-                  shrinkWrap: true,
-                  itemCount: _yamlData?["inputs"].keys.length ?? 0,
-                  itemBuilder: (context, index) {
-                    var key = _yamlData["inputs"].keys.toList()[index];
-                    var input = _yamlData["inputs"][key];
-                    return TextFormField(
-                      decoration: InputDecoration(
-                        labelText: input["name"] ?? key,
-                        border: const UnderlineInputBorder(),
-                      ),
-                      autovalidateMode: AutovalidateMode.onUserInteraction,
-                      maxLength: input["max_length"],
-                      onChanged: (value) {
-                        _insertText(
-                          key,
-                          value,
-                        );
-                      },
-                    );
-                  },
-                  physics: const NeverScrollableScrollPhysics(),
-                ),
-                const SizedBox(
-                  height: 20,
-                ),
-                const Center(
-                  child: Text(
-                    "Bilder auswählen:",
-                    style: TextStyle(fontSize: 20),
-                  ),
-                ),
-                const SizedBox(
-                  height: 10,
-                ),
-                ListView.builder(
-                  shrinkWrap: true,
-                  itemBuilder: (context, index) {
-                    return TextFormField(
-                      readOnly: true,
-                      decoration: InputDecoration(
-                        labelText: _yamlData["images"]
-                            [_yamlData["images"].keys.toList()[index]]["name"],
-                        border: const UnderlineInputBorder(),
-                      ),
-                    );
-                  },
-                  itemCount: _yamlData?["images"].keys.length ?? 0,
-                  physics: const NeverScrollableScrollPhysics(),
-                ),
+                ...?_createTextFields(),
+                ...?_createImageFields(),
                 const SizedBox(
                   height: 20,
                 ),
@@ -179,6 +247,7 @@ class _CreateSharepicPageState extends State<CreateSharepicPage> {
                   children: [
                     ElevatedButton.icon(
                       onPressed: () async {
+                        if (_svgString == null || _yamlData == null) return;
                         ByteData? imageBytes = await _createImage(context);
                         if (imageBytes == null) return;
                         String? result = await FilePicker.platform.saveFile(
