@@ -92,6 +92,7 @@ class _AddTemplatePageState extends State<AddTemplatePage> {
                     return;
                   },
                   autovalidateMode: AutovalidateMode.onUserInteraction,
+                  maxLength: 30,
                 ),
                 const SizedBox(
                   height: 20,
