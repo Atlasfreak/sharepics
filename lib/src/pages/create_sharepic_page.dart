@@ -7,13 +7,11 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:image_cropper/image_cropper.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:sharepics/src/components/svg_container.dart';
 import 'package:sharepics/src/globals.dart' as globals;
 import 'package:sharepics/src/pages/add_template_page.dart';
 import 'package:yaml/yaml.dart';
-import 'package:image/image.dart' as img;
 
 class CreateSharepicPage extends StatefulWidget {
   String name;
@@ -79,7 +77,15 @@ class _CreateSharepicPageState extends State<CreateSharepicPage> {
     setState(() {
       _loading = true;
     });
-    _insertedTexts[key] = value;
+    if (_yamlData["inputs"][key]["lines"] != null &&
+        _yamlData["inputs"][key]["lines"] > 1) {
+      var lines = value.split("\n");
+      for (var i = 0; i < lines.length; i++) {
+        _insertedTexts["$key${i + 1}"] = lines[i];
+      }
+    } else {
+      _insertedTexts[key] = value;
+    }
     _updateSvgString();
     setState(() {});
   }
@@ -157,6 +163,8 @@ class _CreateSharepicPageState extends State<CreateSharepicPage> {
                 value,
               );
             },
+            minLines: 1,
+            maxLines: input["lines"] ?? 1,
           );
         },
         physics: const NeverScrollableScrollPhysics(),
