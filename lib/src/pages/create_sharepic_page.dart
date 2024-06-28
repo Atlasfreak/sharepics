@@ -14,8 +14,8 @@ import 'package:sharepics/src/pages/add_template_page.dart';
 import 'package:yaml/yaml.dart';
 
 class CreateSharepicPage extends StatefulWidget {
-  String name;
-  CreateSharepicPage({super.key, required this.name});
+  final String name;
+  const CreateSharepicPage({super.key, required this.name});
 
   @override
   State<CreateSharepicPage> createState() => _CreateSharepicPageState();
@@ -226,6 +226,40 @@ class _CreateSharepicPageState extends State<CreateSharepicPage> {
                 ),
               ).then((value) => _loadFiles());
             },
+          ),
+          IconButton(
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (context) {
+                  return AlertDialog(
+                    title: const Text("Vorlage löschen"),
+                    content: const Text(
+                        "Möchtest du diese Vorlage wirklich löschen?"),
+                    actions: [
+                      TextButton(
+                          onPressed: () async {
+                            await File(await globals.generateTemplateFilePath(
+                                    "${widget.name}.svg"))
+                                .delete();
+                            await File(await globals.generateTemplateFilePath(
+                                    "${widget.name}.yaml"))
+                                .delete();
+                            Navigator.of(context).pop();
+                            Navigator.of(context).pop();
+                          },
+                          child: const Text("Löschen")),
+                      ElevatedButton(
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                          },
+                          child: const Text("Abbrechen")),
+                    ],
+                  );
+                },
+              );
+            },
+            icon: const Icon(Icons.delete),
           ),
         ],
       ),
