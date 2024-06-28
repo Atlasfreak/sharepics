@@ -61,8 +61,10 @@ class MyApp extends StatelessWidget {
       },
     );
 
-    Color onPrimaryLight = ThemeData.light().colorScheme.onPrimary;
-    Color onPrimaryDark = ThemeData.dark().colorScheme.onPrimary;
+    Color onPrimaryLight =
+        ThemeData.light(useMaterial3: true).colorScheme.onPrimary;
+    Color onPrimaryDark =
+        ThemeData.dark(useMaterial3: true).colorScheme.onPrimary;
     return MaterialApp(
       // Providing a restorationScopeId allows the Navigator built by the
       // MaterialApp to restore the navigation stack when a user leaves and
@@ -82,7 +84,8 @@ class MyApp extends StatelessWidget {
       // SettingsController to display the correct theme.
       theme: ThemeData(
         appBarTheme: AppBarTheme(
-          backgroundColor: ThemeData.light().colorScheme.inversePrimary,
+          backgroundColor:
+              ThemeData.light(useMaterial3: true).colorScheme.inversePrimary,
           titleTextStyle: TextStyle(
               color: Color.fromARGB(
                   onPrimaryLight.alpha,
@@ -94,13 +97,24 @@ class MyApp extends StatelessWidget {
       ),
       darkTheme: ThemeData.dark().copyWith(
         appBarTheme: AppBarTheme(
-          backgroundColor: ThemeData.dark().colorScheme.inversePrimary,
+          backgroundColor:
+              ThemeData.dark(useMaterial3: true).colorScheme.inversePrimary,
           titleTextStyle: TextStyle(
               color: Color.fromARGB(
-                  onPrimaryDark.alpha,
-                  255 - onPrimaryDark.red,
-                  255 - onPrimaryDark.green,
-                  255 - onPrimaryDark.blue),
+                onPrimaryDark.alpha,
+                (0.3 * (255 - onPrimaryDark.red) +
+                        0.59 * (255 - onPrimaryDark.green) +
+                        0.11 * (255 - onPrimaryDark.blue))
+                    .toInt(),
+                (0.3 * (255 - onPrimaryDark.red) +
+                        0.59 * (255 - onPrimaryDark.green) +
+                        0.11 * (255 - onPrimaryDark.blue))
+                    .toInt(),
+                (0.3 * (255 - onPrimaryDark.red) +
+                        0.59 * (255 - onPrimaryDark.green) +
+                        0.11 * (255 - onPrimaryDark.blue))
+                    .toInt(),
+              ),
               fontSize: 20),
         ),
       ),
