@@ -7,8 +7,8 @@ import 'package:path_provider/path_provider.dart';
 import 'package:sharepics/src/globals.dart' as globals;
 
 class AddFontPage extends StatefulWidget {
-  List<String> existingFonts = [];
-  AddFontPage({super.key, required this.existingFonts});
+  final List<String> existingFonts;
+  const AddFontPage({super.key, required this.existingFonts});
 
   @override
   State<AddFontPage> createState() => _AddFontPageState();

@@ -10,8 +10,8 @@ import 'package:sharepics/src/components/svg_container.dart';
 import 'package:sharepics/src/globals.dart' as globals;
 
 class AddTemplatePage extends StatefulWidget {
-  String? name;
-  AddTemplatePage({super.key, this.name});
+  final String? name;
+  const AddTemplatePage({super.key, this.name});
 
   static const routeName = "/add_template";
 
