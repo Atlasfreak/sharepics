@@ -32,7 +32,7 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          "Titel",
+          "Vorlage wählen",
         ),
         actions: [
           IconButton(
@@ -88,7 +88,7 @@ class _HomePageState extends State<HomePage> {
                     MaterialPageRoute(
                       builder: (context) => CreateSharepicPage(name: name),
                     ),
-                  );
+                  ).then((value) => setState(() {}));
                 },
                 borderRadius:
                     BorderRadius.circular(globals.containerBorderRadius),
@@ -106,7 +106,7 @@ class _HomePageState extends State<HomePage> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => AddTemplatePage(),
+              builder: (context) => const AddTemplatePage(),
             ),
           ).then((value) => setState(() {}));
         },
